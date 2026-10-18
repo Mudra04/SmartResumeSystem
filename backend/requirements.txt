@@ -1,7 +1,9 @@
-Flask
+flask
 flask-cors
 flask-jwt-extended
 pymongo
+dnspython
 python-dotenv
 certifi
 pdfplumber
+gunicorn

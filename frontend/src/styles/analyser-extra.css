@@ -1,0 +1,4 @@
+.an-job__right { display: flex; align-items: center; gap: .9rem; flex-shrink: 0; }
+.an-li { display: inline-flex; align-items: center; gap: .3rem; font-size: .82rem; font-weight: 600; color: #0a66c2; border: 1px solid #0a66c2; border-radius: 999px; padding: .2rem .75rem; text-decoration: none; white-space: nowrap; background: #fff; }
+.an-li:hover { background: #0a66c2; color: #fff; }
+@media (max-width: 520px) { .an-job__top { flex-wrap: wrap; } }

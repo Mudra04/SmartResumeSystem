@@ -26,7 +26,9 @@ users_collection = db["users"]
 jobs_collection = db["jobs"]
 candidates_collection = db["candidates"]
 
+from datetime import timedelta
 app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(days=7)
 jwt = JWTManager(app)
 
 @app.route("/register", methods=["POST"])
@@ -1372,6 +1374,9 @@ def health():
 # ============================================================
 # START SERVER
 # ============================================================
+
+from candidate_status_routes import register_candidate_status_routes
+register_candidate_status_routes(app, candidates_collection, jobs_collection)
 
 if __name__ == "__main__":
     app.run(

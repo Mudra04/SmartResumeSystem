@@ -1,24 +1,27 @@
 import React from "react";
+import Icon from "./icons";
 
-export default function Topbar() {
-  const recruiterName =
-    localStorage.getItem("recruiterName") || "Recruiter";
+const SUBS = {
+  overview: "Here's how your hiring pipeline looks today.",
+  jobs: "Open roles and how candidates match them.",
+  candidates: "Screen, filter and move candidates through stages.",
+  interviews: "Your interview calendar.",
+  upload: "Add candidates to a job and score them automatically.",
+  analytics: "Scores, stages and skills across all candidates.",
+};
+const TITLES = { jobs: "Jobs", candidates: "Candidates", interviews: "Interviews", upload: "Upload resumes", analytics: "Analytics" };
 
+export default function Topbar({ view, userName, onCreateJob, onRefresh, refreshing }) {
+  const title = view === "overview" ? (userName ? `Welcome back, ${userName}` : "Welcome back") : TITLES[view];
   return (
-    <header className="h-[76px] bg-white border-b border-ink-200 px-6 md:px-8 flex items-center justify-between">
+    <header className="rc-top">
       <div>
-        <div className="font-display text-xl font-bold text-ink-900">
-          Recruiter Dashboard
-        </div>
-
-        <div className="text-ink-500 text-xs mt-0.5">
-          Welcome back, {recruiterName}
-        </div>
+        <h1>{title}</h1>
+        <p>{SUBS[view]}</p>
       </div>
-
-      <div className="hidden sm:flex items-center gap-1.5 text-ink-500 text-xs">
-        <div className="w-2 h-2 bg-green-500 rounded-full" />
-        <span>System Online</span>
+      <div className="rc-top__tools">
+        <button className="rc-iconbtn" onClick={onRefresh} disabled={refreshing} aria-label="Refresh data" title="Refresh data"><Icon name="refresh" /></button>
+        <button className="btn btn--primary rc-create" onClick={onCreateJob}><Icon name="plus" size={16} /> Create new job</button>
       </div>
     </header>
   );

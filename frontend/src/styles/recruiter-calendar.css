@@ -1,0 +1,5 @@
+.rc-intlist__head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: .6rem; font-size: .92rem; }
+.rc-intlist .rc-int__time { width: 5.4rem; line-height: 1.3; }
+.rc-intlist .rc-int__time b { display: block; font-size: .75rem; font-weight: 600; color: var(--muted); }
+.rc-intlist .rc-int__who strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rc-int__more { align-self: flex-start; margin-top: .3rem; }

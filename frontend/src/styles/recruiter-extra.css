@@ -1,0 +1,10 @@
+.rc-overlay--center { justify-content: center; align-items: center; }
+.rc-modal { width: min(580px, 92%); max-height: 92vh; overflow-y: auto; background: #fff; border-radius: 16px; padding: 1.6rem; display: flex; flex-direction: column; gap: 1rem; animation: rc-slide .2s ease-out; }
+.rc-modal h2 { margin: 0; font-size: 1.4rem; }
+.rc-modal textarea.rc-input { resize: vertical; font-family: inherit; }
+.rc-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+@media (max-width: 520px) { .rc-form-row { grid-template-columns: 1fr; } }
+.rc-form-actions { display: flex; justify-content: flex-end; gap: .6rem; }
+.rc-job__manage { display: flex; gap: 1.2rem; border-top: 1px solid var(--line); padding-top: .8rem; }
+.rc-link--danger { color: var(--bad); }
+.rc-head-actions { display: flex; gap: 1.2rem; }

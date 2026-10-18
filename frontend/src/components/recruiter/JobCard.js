@@ -1,50 +1,32 @@
 import React from "react";
-import { Card, Button } from "../ui";
 
-export default function JobCard({
-  job,
-  applicantCount,
-  onViewCandidates,
-}) {
+export default function JobCard({ job, stats, onView, onUpload, onEdit, onDelete }) {
+  const meta = [job.company, job.domain, job.experience, job.location, job.type].filter(Boolean).join(" · ");
   return (
-    <Card className="hover:border-ink-300 hover:shadow-raised hover:-translate-y-0.5 transition-all duration-200">
-
-      <div>
-        <div className="text-ink-900 text-base font-bold">
-          {job.title}
+    <article className="rc-card rc-job">
+      <div className="rc-job__head">
+        <h3>{job.title}</h3>
+        <p className="rc-muted">{meta || "No details added"}</p>
+      </div>
+      {job.skills.length > 0 && (
+        <div className="rc-chips">
+          {job.skills.slice(0, 6).map((s) => <span key={s} className="rc-chip">{s}</span>)}
+          {job.skills.length > 6 && <span className="rc-chip rc-chip--more">+{job.skills.length - 6}</span>}
         </div>
-
-        <div className="text-ink-500 text-[13px] mt-1">
-          {job.company}
-        </div>
+      )}
+      <div className="rc-job__stats">
+        <div><strong>{stats.total}</strong><span>Candidates</span></div>
+        <div><strong>{stats.shortlisted}</strong><span>Shortlisted</span></div>
+        <div><strong>{stats.avg || "–"}</strong><span>Avg score</span></div>
       </div>
-
-      <div className="flex flex-wrap gap-1.5 text-ink-500 text-[11px] mt-4">
-        <span>{job.domain}</span>
-        <span>•</span>
-        <span>{job.experience}</span>
-        <span>•</span>
-        <span>{applicantCount} applicants</span>
+      <div className="rc-job__actions">
+        <button className="btn btn--primary" onClick={onView}>View candidates</button>
+        <button className="btn btn--ghost" onClick={onUpload}>Upload resumes</button>
       </div>
-
-      <div className="flex flex-wrap gap-1.5 mt-4">
-        {(job.required_skills || [])
-          .slice(0, 6)
-          .map((skill) => (
-            <span key={skill} className="inline-flex items-center px-2 py-1 bg-ink-100 text-ink-600 rounded-md text-[11px]">
-              {skill}
-            </span>
-          ))}
+      <div className="rc-job__manage">
+        <button className="rc-link" onClick={onEdit}>Edit job</button>
+        <button className="rc-link rc-link--danger" onClick={onDelete}>Delete</button>
       </div>
-
-      <Button
-        variant="primary"
-        onClick={onViewCandidates}
-        className="w-full mt-[18px] justify-center"
-      >
-        View Candidates
-      </Button>
-
-    </Card>
+    </article>
   );
 }

@@ -1,160 +1,80 @@
-import React, { useState } from "react";
-import { FiUploadCloud, FiCheck, FiX } from "react-icons/fi";
-import { recruiterApi } from "../../services/RecruiterApi";
-import { Card, Button } from "../ui";
+import React, { useRef, useState } from "react";
+import { api } from "./recruiterApi";
 
-export default function UploadResumes({ job, onUploadComplete }) {
+export default function UploadResumes({ jobs, initialJobId, onDone }) {
+  const inputRef = useRef(null);
+  const [jobId, setJobId] = useState(initialJobId || "");
   const [files, setFiles] = useState([]);
-  const [uploading, setUploading] = useState(false);
-  const [results, setResults] = useState([]);
-  const [error, setError] = useState(null);
+  const [drag, setDrag] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [results, setResults] = useState({}); // name -> "ok" | error text
 
-  const handleFileChange = (e) => {
-    const selectedFiles = Array.from(e.target.files || []);
-
-    setFiles(selectedFiles);
-    setResults([]);
-    setError(null);
+  const add = (list) => {
+    const pdfs = Array.from(list).filter((f) => /\.pdf$/i.test(f.name));
+    setFiles((prev) => [...prev, ...pdfs.filter((p) => !prev.some((x) => x.name === p.name))]);
+    setResults({});
   };
 
-  const handleUpload = async () => {
-    if (!job || files.length === 0) {
-      setError("Please select at least one PDF resume.");
-      return;
-    }
-
-    setUploading(true);
-    setError(null);
-    setResults([]);
-
-    const uploadResults = [];
-
-    for (const file of files) {
+  const run = async () => {
+    setBusy(true);
+    const out = {};
+    for (const f of files) {
       try {
-        const result = await recruiterApi.uploadResume(
-          job.job_id,
-          file
-        );
-
-        uploadResults.push({
-          filename: file.name,
-          success: true,
-          message: result.message || "Uploaded successfully",
-        });
-      } catch (err) {
-        uploadResults.push({
-          filename: file.name,
-          success: false,
-          message: "Upload failed",
-        });
+        const form = new FormData();
+        form.append("resume", f); // change "resume" if your Flask route expects another field name
+        await api(`/jobs/${jobId}/candidates`, { method: "POST", form });
+        out[f.name] = "ok";
+      } catch (e) {
+        out[f.name] = e.message;
       }
+      setResults({ ...out });
     }
-
-    setResults(uploadResults);
-    setUploading(false);
-
-    if (onUploadComplete) {
-      onUploadComplete();
-    }
+    setBusy(false);
+    onDone(Object.values(out).filter((v) => v === "ok").length);
   };
+
+  const okCount = Object.values(results).filter((v) => v === "ok").length;
 
   return (
-    <Card padding="sm" className="my-6">
-      <div className="mb-4">
-        <h2 className="font-display text-xl font-bold text-ink-900 m-0">Upload Resumes</h2>
-        <div className="text-ink-400 text-xs mt-1">
-          Upload multiple PDF resumes for{" "}
-          <strong>{job?.title}</strong>
-        </div>
-      </div>
-
-      <label className="flex flex-col items-center justify-center min-h-[145px] border-[1.5px] border-dashed border-ink-300 rounded-lg bg-ink-50 cursor-pointer text-center transition-colors duration-200 hover:border-ink-500 hover:bg-ink-100">
-        <input
-          type="file"
-          accept=".pdf,application/pdf"
-          multiple
-          className="hidden"
-          onChange={handleFileChange}
-        />
-
-        <div className="w-10 h-10 rounded-full bg-ink-100 flex items-center justify-center text-brand-600 mb-2.5">
-          <FiUploadCloud size={20} />
-        </div>
-
-        <div className="text-sm font-bold text-ink-700">
-          Select PDF resumes
-        </div>
-
-        <div className="text-ink-400 text-[11px] mt-1">
-          You can select multiple resumes at once
-        </div>
+    <div className="rc-card rc-upload">
+      <label className="rc-field">
+        <span>Job</span>
+        <select className="rc-input" value={jobId} onChange={(e) => setJobId(e.target.value)}>
+          <option value="">Select a job</option>
+          {jobs.map((j) => <option key={j.id} value={j.id}>{j.title}</option>)}
+        </select>
       </label>
 
-      {files.length > 0 && (
-        <div className="mt-[18px]">
-          <h4 className="m-0 mb-2.5 text-[13px] text-ink-700">
-            Selected Resumes ({files.length})
-          </h4>
-
-          {files.map((file) => (
-            <div
-              key={`${file.name}-${file.size}`}
-              className="flex items-center justify-between gap-4 py-2 border-b border-ink-100 text-xs"
-            >
-              <span>{file.name}</span>
-              <span className="text-ink-400 text-[11px]">
-                {(file.size / 1024).toFixed(1)} KB
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {error && (
-        <div className="text-red-700 text-[11px] mt-1.5">
-          {error}
-        </div>
-      )}
-
-      <Button
-        variant="primary"
-        onClick={handleUpload}
-        disabled={uploading || files.length === 0}
-        className="mt-4"
+      <div
+        className={`rc-drop ${drag ? "is-drag" : ""}`}
+        onDragOver={(e) => { e.preventDefault(); setDrag(true); }}
+        onDragLeave={() => setDrag(false)}
+        onDrop={(e) => { e.preventDefault(); setDrag(false); add(e.dataTransfer.files); }}
       >
-        {uploading
-          ? "Analyzing Resumes..."
-          : `Upload ${files.length || ""} Resume${
-              files.length === 1 ? "" : "s"
-            }`}
-      </Button>
+        <input ref={inputRef} type="file" accept=".pdf" multiple hidden onChange={(e) => { add(e.target.files); e.target.value = ""; }} />
+        <p>Drag PDF resumes here, or</p>
+        <button type="button" className="btn btn--ghost" onClick={() => inputRef.current.click()}>Choose files</button>
+      </div>
 
-      {results.length > 0 && (
-        <div className="mt-[18px]">
-          <h4 className="m-0 mb-2.5 text-[13px] text-ink-700">Upload Results</h4>
-
-          {results.map((result) => (
-            <div
-              key={result.filename}
-              className={[
-                "flex items-start gap-2.5 p-2.5 rounded-md mt-1.5 text-xs",
-                result.success ? "bg-green-50" : "bg-red-50",
-              ].join(" ")}
-            >
-              <span>
-                {result.success ? <FiCheck /> : <FiX />}
-              </span>
-
-              <div>
-                <strong>{result.filename}</strong>
-                <div className="text-ink-400 text-[11px]">
-                  {result.message}
-                </div>
-              </div>
-            </div>
+      {files.length > 0 && (
+        <ul className="rc-files">
+          {files.map((f) => (
+            <li key={f.name}>
+              <span>{f.name} <em>{Math.round(f.size / 1024)} KB</em></span>
+              {results[f.name] === "ok" && <b className="rc-ok">Scored</b>}
+              {results[f.name] && results[f.name] !== "ok" && <b className="rc-err">{results[f.name]}</b>}
+              {!results[f.name] && !busy && <button className="rc-link" onClick={() => setFiles(files.filter((x) => x !== f))}>Remove</button>}
+              {!results[f.name] && busy && <b className="rc-wait">Waiting…</b>}
+            </li>
           ))}
-        </div>
+        </ul>
       )}
-    </Card>
+
+      {okCount > 0 && !busy && <p className="rc-success">{okCount} resume{okCount > 1 ? "s" : ""} added to this job.</p>}
+
+      <button className="btn btn--primary btn--lg" disabled={!jobId || files.length === 0 || busy} onClick={run}>
+        {busy ? "Uploading…" : `Upload and score ${files.length || ""} resume${files.length === 1 ? "" : "s"}`}
+      </button>
+    </div>
   );
 }

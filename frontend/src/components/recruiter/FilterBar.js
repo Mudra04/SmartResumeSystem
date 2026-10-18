@@ -1,122 +1,41 @@
-import { Card, Input } from "../ui";
+import React from "react";
+import { STATUSES } from "./recruiterApi";
 
-const STATUS_OPTIONS = [
-  "All",
-  "Applied",
-  "Screening",
-  "Shortlisted",
-  "Interview",
-  "Selected",
-  "Rejected",
-];
-
-const MATCH_OPTIONS = [
-  { label: "All", value: 0 },
-  { label: "90%+", value: 90 },
-  { label: "80%+", value: 80 },
-  { label: "70%+", value: 70 },
-  { label: "60%+", value: 60 },
-];
-
-const SCORE_OPTIONS = [
-  { label: "All", value: 0 },
-  { label: "90+", value: 90 },
-  { label: "80+", value: 80 },
-  { label: "70+", value: 70 },
-  { label: "60+", value: 60 },
-];
-
-const selectCls = "h-[38px] border border-ink-300 rounded-md bg-white text-ink-700 px-2.5 text-xs outline-none focus:border-brand-500";
-
-export default function FilterBar({ filters, onChange }) {
-  const update = (key, value) => {
-    onChange({
-      ...filters,
-      [key]: value,
-    });
-  };
-
+export default function FilterBar({ filters, setFilters, jobs, shown, total }) {
+  const set = (k) => (e) => setFilters({ ...filters, [k]: e.target.value });
+  const active = filters.job || filters.status || filters.minScore > 0 || filters.query;
   return (
-    <Card padding="sm" rounded="lg" className="flex flex-wrap gap-2.5 mb-4">
-      <Input
-        size="sm"
-        className="min-w-[190px] flex-1"
-        placeholder="Search candidate"
-        value={filters.search}
-        onChange={(e) => update("search", e.target.value)}
-      />
-
-      <select
-        className={selectCls}
-        value={filters.status}
-        onChange={(e) => update("status", e.target.value)}
-      >
-        {STATUS_OPTIONS.map((status) => (
-          <option key={status} value={status}>
-            Status: {status}
-          </option>
-        ))}
-      </select>
-
-      <select
-        className={selectCls}
-        value={filters.minMatch}
-        onChange={(e) =>
-          update("minMatch", Number(e.target.value))
-        }
-      >
-        {MATCH_OPTIONS.map((option) => (
-          <option key={option.label} value={option.value}>
-            Job Match: {option.label}
-          </option>
-        ))}
-      </select>
-
-      <select
-        className={selectCls}
-        value={filters.minScore}
-        onChange={(e) =>
-          update("minScore", Number(e.target.value))
-        }
-      >
-        {SCORE_OPTIONS.map((option) => (
-          <option key={option.label} value={option.value}>
-            Resume Score: {option.label}
-          </option>
-        ))}
-      </select>
-
-      <select
-        className={selectCls}
-        value={filters.sortBy}
-        onChange={(e) =>
-          update("sortBy", e.target.value)
-        }
-      >
-        <option value="job_match_score">
-          Sort by Job Match
-        </option>
-
-        <option value="resume_score">
-          Sort by Resume Score
-        </option>
-      </select>
-
-      <select
-        className={selectCls}
-        value={filters.sortDir}
-        onChange={(e) =>
-          update("sortDir", e.target.value)
-        }
-      >
-        <option value="desc">
-          Highest first
-        </option>
-
-        <option value="asc">
-          Lowest first
-        </option>
-      </select>
-    </Card>
+    <div className="rc-filters">
+      <label>
+        <span>Job</span>
+        <select className="rc-input" value={filters.job} onChange={set("job")}>
+          <option value="">All jobs</option>
+          {jobs.map((j) => <option key={j.id} value={j.id}>{j.title}</option>)}
+        </select>
+      </label>
+      <label>
+        <span>Stage</span>
+        <select className="rc-input" value={filters.status} onChange={set("status")}>
+          <option value="">All stages</option>
+          {STATUSES.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
+        </select>
+      </label>
+      <label>
+        <span>Minimum score: <strong>{filters.minScore}</strong></span>
+        <input type="range" min="0" max="100" step="5" value={filters.minScore} onChange={(e) => setFilters({ ...filters, minScore: Number(e.target.value) })} />
+      </label>
+      <label>
+        <span>Sort by</span>
+        <select className="rc-input" value={filters.sort} onChange={set("sort")}>
+          <option value="score">Highest score</option>
+          <option value="name">Name (A–Z)</option>
+          <option value="recent">Most recent</option>
+        </select>
+      </label>
+      <div className="rc-filters__meta">
+        <span>{shown} of {total} candidates</span>
+        {active && <button className="rc-link" onClick={() => setFilters({ job: "", status: "", minScore: 0, sort: "score", query: "" })}>Clear filters</button>}
+      </div>
+    </div>
   );
 }
