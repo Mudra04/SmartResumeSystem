@@ -13,7 +13,7 @@ import re
 import io
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, origins=os.getenv("FRONTEND_ORIGINS", "*").split(","))
 
 load_dotenv()
 
